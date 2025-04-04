@@ -85,6 +85,7 @@ export function TavasitCalculator() {
     contamination: true,
     endOfSeason: false,
     oliveType: OliveSensitivityType.HS,
+    oliveTypeName:  OliveSensitivityType.HS.valueOf(),
     rainTempPairs: [],
   });
 
@@ -172,6 +173,7 @@ export function TavasitCalculator() {
         contamination: true,
         endOfSeason: false,
         oliveType: OliveSensitivityType.HS,
+        oliveTypeName:  OliveSensitivityType.HS.valueOf(),
         rainTempPairs: []})
       setCurrentPage(PageNumber.WELCOME)
     } else {
@@ -201,7 +203,9 @@ export function TavasitCalculator() {
   const renderOliveType = () => {return <div>
     <div>יש לבחור זן זית</div>
       <div className="mt-2 grid grid-cols-1">
-        <select value={formData.oliveTypeName} onChange={(e) => setFormData({...formData, oliveType: oliveTypes[e.target.value] as OliveSensitivityType, oliveTypeName: e.target.value})} className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+        <select value={formData.oliveTypeName} 
+        onChange={(e) => setFormData({...formData, oliveType: oliveTypes[e.target.value as keyof typeof oliveTypes], oliveTypeName: e.target.value})} 
+        className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
           {Object.entries(oliveTypes).map(pairs => <option value={pairs[0]}>{pairs[0]}</option>)}
         </select>
         <svg className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-slot="icon">
