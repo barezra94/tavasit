@@ -1,17 +1,9 @@
-"use client"
-
-import { TavasitCalculator } from "./(tavasitCalculator)/page";
+import  TavasitCalculator from "./(tavasitCalculator)/page";
 
 
-export default async function Page() {
+export default function Page() {
 
     return (
-      <>
-       
-        <div>
           <TavasitCalculator/>
-        </div>
-      </>
-      
     )
 }
