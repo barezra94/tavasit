@@ -87,6 +87,8 @@ export default function TavasitCalculator() {
     rainTempPairs: [],
   });
 
+  console.log('Mounted TavasitCalculator');
+
   const [rainAmount, setRainAmount] = useState('');
   const [minTemp, setMinTemp] = useState('');
 
@@ -95,13 +97,16 @@ export default function TavasitCalculator() {
   },[currentPage])
 
   useEffect(() => {
-    if (currentPage === PageNumber.RAIN_EVENT 
-      || currentPage === PageNumber.RESELINCE_QUESTION 
-      || currentPage === PageNumber.MR_QUESTION_SEASON 
-      || currentPage === PageNumber.MR_QUESTION_CONTAMIATION) {
-        handleNext();
-      }
-  }, [formData])
+    if (currentPage === PageNumber.RAIN_EVENT && formData.rainEvent !== undefined) {
+      handleNext();
+    } else if (currentPage === PageNumber.RESELINCE_QUESTION && formData.contamination !== undefined) {
+      handleNext();
+    } else if (currentPage === PageNumber.MR_QUESTION_SEASON && formData.endOfSeason !== undefined) {
+      handleNext();
+    } else if (currentPage === PageNumber.MR_QUESTION_CONTAMIATION && formData.contamination !== undefined) {
+      handleNext();
+    }
+  }, [formData]);
 
   const increaseProgress = () => {
     setProgress(Math.min(currentPage * 20, 100));
@@ -132,6 +137,7 @@ export default function TavasitCalculator() {
   }
 
   const handleNext = () => {
+    console.log('handleNext fired at page:', currentPage);
     if (currentPage === PageNumber.RAIN_EVENT) {
       if (!formData.rainEvent) {
         setCurrentPage(PageNumber.FINAL_NO_CALC); 
@@ -201,11 +207,15 @@ export default function TavasitCalculator() {
   const renderOliveType = () => {return <div>
     <div>יש לבחור זן זית</div>
       <div className="mt-2 grid grid-cols-1">
-        <select value={formData.oliveTypeName}
-        onChange={(e) => setFormData({...formData, oliveType: oliveTypes[e.target.value as keyof typeof oliveTypes], oliveTypeName: e.target.value})} 
-        className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-          {Object.entries(oliveTypes).map(pairs => <option value={pairs[0]}>{pairs[0]}</option>)}
-        </select>
+            <select value={formData.oliveTypeName} 
+            onChange={(e) => {
+            const selectedOliveTypeName = e.target.value;
+            const selectedOliveType = oliveTypes[selectedOliveTypeName as keyof typeof oliveTypes];
+            setFormData({...formData, oliveType: selectedOliveType, oliveTypeName: selectedOliveTypeName});
+            }} 
+            className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+            {Object.entries(oliveTypes).map(([key, _]) => <option key={key} value={key}>{key}</option>)}
+          </select>
         <svg className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" data-slot="icon">
           <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
         </svg>
@@ -342,7 +352,7 @@ export default function TavasitCalculator() {
               onClick={handlePrevious}
               variant="ghost"
               size="sm"
-              type="submit"
+              type="button"
               disabled={currentPage === PageNumber.WELCOME}
             >
               הקודם
@@ -351,7 +361,7 @@ export default function TavasitCalculator() {
               onClick={handleNext}
               variant="ghost"
               size="sm"
-              type="submit"
+              type="button"
               disabled={currentPage === PageNumber.FINAL_NO_CALC  || currentPage === PageNumber.FINAL_WITH_CALC}
               className={currentPage !== PageNumber.RAIN_TEMP ? 'visible' : 'invisible' }
             >
