@@ -373,7 +373,7 @@ export default function TavasitCalculator() {
               onClick={() => {calcTavasit(); handleNext()}}
               variant="ghost"
               size="sm"
-              type="submit"
+              type="button"
               className={currentPage === PageNumber.RAIN_TEMP ? 'visible' : 'invisible' }
             >
               חשב
