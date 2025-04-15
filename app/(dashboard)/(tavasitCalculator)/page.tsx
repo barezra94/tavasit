@@ -52,25 +52,24 @@ const minTempsForType: Record<OliveSensitivityType, number[]> = {
 }
 
 const oliveTypes = {
-  'נבאלי בלאדי': OliveSensitivityType.HS,
-  'סורי': OliveSensitivityType.HS,
-  'מנזילו': OliveSensitivityType.MS,
-  'קורטינה': OliveSensitivityType.MS,
-  'פישולין מרוקאי': OliveSensitivityType.MS,
-  'פיקואל': OliveSensitivityType.MS,
-  'ברנע': OliveSensitivityType.MR,
-  'קורנייקי': OliveSensitivityType.HR,
-  'הוכיבלנקה': OliveSensitivityType.HR,
-  'פישולין לגדוק': OliveSensitivityType.HR,
-  'סבלינו': OliveSensitivityType.HR,
-  'ארבקינה': OliveSensitivityType.HR,
   'אוליאסטר': OliveSensitivityType.HR,
-  'מיסיון': OliveSensitivityType.HR,
+  'ארבקינה': OliveSensitivityType.HR,
+  'ברנע': OliveSensitivityType.MR,
   'גמליק': OliveSensitivityType.I,
-  'קדש': OliveSensitivityType.I,
-  'מעלות': OliveSensitivityType.I,
+  'הוכיבלנקה': OliveSensitivityType.HR,
+  'מיסיון': OliveSensitivityType.HR,
+  'מנזנילו': OliveSensitivityType.MS,
   'מעיליה': OliveSensitivityType.I,
-
+  'מעלות': OliveSensitivityType.I,
+  'נבאלי בלאדי': OliveSensitivityType.HS,
+  'סבלינו': OliveSensitivityType.HR,
+  'סורי': OliveSensitivityType.HS,
+  'פיקואל': OliveSensitivityType.MS,
+  'פישולין לגדוק': OliveSensitivityType.HR,
+  'פישולין מרוקאי': OliveSensitivityType.MS,
+  'קדש': OliveSensitivityType.I,
+  'קורטינה': OliveSensitivityType.MS,
+  'קורנייקי': OliveSensitivityType.HR,
 }
 
 export default function TavasitCalculator() {
@@ -79,12 +78,10 @@ export default function TavasitCalculator() {
     rainEvent: true,
     contamination: true,
     endOfSeason: false,
-    oliveType: OliveSensitivityType.HS,
-    oliveTypeName: 'נבאלי בלאדי',
+    oliveType: oliveTypes[Object.keys(oliveTypes)[0] as keyof typeof oliveTypes],
+    oliveTypeName: Object.keys(oliveTypes)[0],
     rainTempPairs: [],
   });
-
-  console.log('Mounted TavasitCalculator');
 
   const [rainAmount, setRainAmount] = useState('');
   const [minTemp, setMinTemp] = useState('');
@@ -109,7 +106,7 @@ export default function TavasitCalculator() {
     }, 0);
 
     if (totalAmountOfRain < 15) {
-      return <div>לא ירד מספיק גשם - אין הדבקה</div>
+      return <div>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
     }
 
     if (!temps) {
@@ -117,11 +114,15 @@ export default function TavasitCalculator() {
     }
 
     const enteredTemps = formData.rainTempPairs.map(pair => parseFloat(pair.minTemp));
-    if (enteredTemps.some(temp => temp > temps[1] || temp < temps[0])) {
-      return <div>לא היה אירוע הדבקה מכיוון שהטמפרטורה אינה בטווח</div>
+    const sumOfAllTemps = formData.rainTempPairs.reduce((total, pair) => {
+      return total + parseFloat(pair.minTemp);
+    }, 0);
+    const temp = sumOfAllTemps / enteredTemps.length;
+    if (temp > temps[1] || temp < temps[0]) {
+      return <div>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
     }
 
-    return <div>היה אירוע הדבקה - במידה ולא רוסס בשבועיים האחרונים, יש לבצע ריסוס</div>
+    return <div>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.</div>
 
   }
 
@@ -166,8 +167,8 @@ export default function TavasitCalculator() {
         rainEvent: true,
         contamination: true,
         endOfSeason: false,
-        oliveType: OliveSensitivityType.HS,
-        oliveTypeName: 'נבאלי בלאדי',
+        oliveType: oliveTypes[Object.keys(oliveTypes)[0] as keyof typeof oliveTypes],
+        oliveTypeName: Object.keys(oliveTypes)[0],
         rainTempPairs: []
       })
       setCurrentPage(PageNumber.WELCOME)
@@ -216,7 +217,7 @@ export default function TavasitCalculator() {
   const renderRainEvent = () => {
     return <div className='flex justify-center flex-col items-center'>
       <div>
-        האם ירדו לפחות 15 מ״מ גשם ביום אחד או מספר ימים רצופים?      </div>
+        האם היה אירוע גשם שהסתיים בשבועיים האחרונים? </div>
       <div>
         <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, rainEvent: true }) }}>כן</Button>
         <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, rainEvent: false }) }}>לא</Button>
@@ -226,7 +227,9 @@ export default function TavasitCalculator() {
 
   const renderOliveType = () => {
     return <div>
-      <div>יש לבחור זן זית</div>
+      <div>מהו הזמן העיקרי בחלקה?</div>
+      <div>בחר מהרשימה:</div>
+
       <div className="mt-2 grid grid-cols-1">
         <select value={formData.oliveTypeName}
           onChange={(e) => {
@@ -255,26 +258,25 @@ export default function TavasitCalculator() {
 
   const renderRainTemp = () => {
     return <div>
-      <div>יש להזין טמפרטורת מינימום וכמות גשם ולאחר מכן הוסף.
-        לאחר סיום הזנה יש ללחוץ חשב.</div>
-      <div className="mt-3 grid grid-cols-3">
-        <input
-          type="number"
-          name="rainAmount"
-          placeholder="הכנס כמות גשם"
-          value={rainAmount}
-          onChange={e => setRainAmount(e.target.value)}
-        />
-
-        <input
-          type="number"
-          name="temp"
-          placeholder="הכנס טממפרטורת מינימום"
-          value={minTemp}
-          onChange={e => setMinTemp(e.target.value)}
-        />
-        <Button className='m-5 ml-2' onClick={addRainTempPair}>הוסף</Button>
-      </div>
+      <div>רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל יום באירוע הגשם. </div>
+      <div>הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולחץ ״הוסף״ על מנת להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״.</div>
+      <input
+        className='m-5'
+        type="number"
+        name="rainAmount"
+        placeholder="הכנס כמות גשם"
+        value={rainAmount}
+        onChange={e => setRainAmount(e.target.value)}
+      />
+      <input
+        className='m-5'
+        type="number"
+        name="temp"
+        placeholder="הכנס טממפרטורת מינימום"
+        value={minTemp}
+        onChange={e => setMinTemp(e.target.value)}
+      />
+      <Button className='m-5 ml-2' onClick={addRainTempPair}>הוסף</Button>
       <div>
         <ul>
           {formData.rainTempPairs.map((pair, index) => (
@@ -287,7 +289,7 @@ export default function TavasitCalculator() {
 
   const renderNoCalc = () => {
     return <div>
-      {!formData.rainEvent ? " יש לנסות שוב כאשר יהיה אירוע גשם" : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
+      {!formData.rainEvent ? "על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. המשך לאחר אירוע גשם הבא" : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
     </div>
   }
 
@@ -378,14 +380,14 @@ export default function TavasitCalculator() {
               size="sm"
               type="button"
               disabled={currentPage === PageNumber.FINAL_NO_CALC || currentPage === PageNumber.FINAL_WITH_CALC}
-              className={currentPage !== PageNumber.RAIN_TEMP ? 'visible' : 'invisible'}
+              className={(currentPage !== PageNumber.RAIN_TEMP && currentPage !== PageNumber.WELCOME && currentPage !== PageNumber.RAIN_EVENT) ? 'visible' : 'invisible'}
             >
               הבא
             </Button>
           </div>
           <div className="flex">
             <Button
-              onClick={() => { calcTavasit(); }}
+              onClick={() => { calcTavasit(); handleNext() }}
               variant="ghost"
               size="sm"
               type="button"

@@ -226,24 +226,24 @@ const minTempsForType = {
     ["I"]: []
 };
 const oliveTypes = {
-    'נבאלי בלאדי': "HS",
-    'סורי': "HS",
-    'מנזילו': "MS",
-    'קורטינה': "MS",
-    'פישולין מרוקאי': "MS",
-    'פיקואל': "MS",
-    'ברנע': "MR",
-    'קורנייקי': "HR",
-    'הוכיבלנקה': "HR",
-    'פישולין לגדוק': "HR",
-    'סבלינו': "HR",
-    'ארבקינה': "HR",
     'אוליאסטר': "HR",
-    'מיסיון': "HR",
+    'ארבקינה': "HR",
+    'ברנע': "MR",
     'גמליק': "I",
-    'קדש': "I",
+    'הוכיבלנקה': "HR",
+    'מיסיון': "HR",
+    'מנזנילו': "MS",
+    'מעיליה': "I",
     'מעלות': "I",
-    'מעיליה': "I"
+    'נבאלי בלאדי': "HS",
+    'סבלינו': "HR",
+    'סורי': "HS",
+    'פיקואל': "MS",
+    'פישולין לגדוק': "HR",
+    'פישולין מרוקאי': "MS",
+    'קדש': "I",
+    'קורטינה': "MS",
+    'קורנייקי': "HR"
 };
 function TavasitCalculator() {
     _s();
@@ -252,11 +252,10 @@ function TavasitCalculator() {
         rainEvent: true,
         contamination: true,
         endOfSeason: false,
-        oliveType: "HS",
-        oliveTypeName: 'נבאלי בלאדי',
+        oliveType: oliveTypes[Object.keys(oliveTypes)[0]],
+        oliveTypeName: Object.keys(oliveTypes)[0],
         rainTempPairs: []
     });
-    console.log('Mounted TavasitCalculator');
     const [rainAmount, setRainAmount] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [minTemp, setMinTemp] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -279,10 +278,10 @@ function TavasitCalculator() {
         }, 0);
         if (totalAmountOfRain < 15) {
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                children: "לא ירד מספיק גשם - אין הדבקה"
+                children: "על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס"
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                lineNumber: 112,
+                lineNumber: 109,
                 columnNumber: 14
             }, this);
         }
@@ -291,25 +290,29 @@ function TavasitCalculator() {
                 children: "יש לפנות למדריך"
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                lineNumber: 116,
+                lineNumber: 113,
                 columnNumber: 14
             }, this);
         }
         const enteredTemps = formData.rainTempPairs.map((pair)=>parseFloat(pair.minTemp));
-        if (enteredTemps.some((temp)=>temp > temps[1] || temp < temps[0])) {
+        const sumOfAllTemps = formData.rainTempPairs.reduce((total, pair)=>{
+            return total + parseFloat(pair.minTemp);
+        }, 0);
+        const temp = sumOfAllTemps / enteredTemps.length;
+        if (temp > temps[1] || temp < temps[0]) {
             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                children: "לא היה אירוע הדבקה מכיוון שהטמפרטורה אינה בטווח"
+                children: "על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס"
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                lineNumber: 121,
+                lineNumber: 122,
                 columnNumber: 14
             }, this);
         }
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            children: "היה אירוע הדבקה - במידה ולא רוסס בשבועיים האחרונים, יש לבצע ריסוס"
+            children: "על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס."
         }, void 0, false, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 124,
+            lineNumber: 125,
             columnNumber: 12
         }, this);
     };
@@ -351,8 +354,8 @@ function TavasitCalculator() {
                 rainEvent: true,
                 contamination: true,
                 endOfSeason: false,
-                oliveType: "HS",
-                oliveTypeName: 'נבאלי בלאדי',
+                oliveType: oliveTypes[Object.keys(oliveTypes)[0]],
+                oliveTypeName: Object.keys(oliveTypes)[0],
                 rainTempPairs: []
             });
             setCurrentPage(1);
@@ -374,7 +377,7 @@ function TavasitCalculator() {
                                     children: "טווזית"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 183,
+                                    lineNumber: 184,
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -382,13 +385,13 @@ function TavasitCalculator() {
                                     children: "מערכת תומכת החלטה לבקרת מחלת עין טווס בזית"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 186,
+                                    lineNumber: 187,
                                     columnNumber: 11
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 182,
+                            lineNumber: 183,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -399,7 +402,7 @@ function TavasitCalculator() {
                                     alt: "טווזית לוגו"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 191,
+                                    lineNumber: 192,
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -407,19 +410,19 @@ function TavasitCalculator() {
                                     children: "PED-man"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 192,
+                                    lineNumber: 193,
                                     columnNumber: 11
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 190,
+                            lineNumber: 191,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 181,
+                    lineNumber: 182,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -430,7 +433,7 @@ function TavasitCalculator() {
                             children: "טווזית משתמשת בנתונים מטאורולוגים (גשם וטמפרטורה) ובמידע מקומי (זן נטוע, נגיעות בעין טווס והיסטוריית ריסוסים קודמים) לחיזוי הסבירות להתרחשות הדבקה."
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 199,
+                            lineNumber: 200,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -438,13 +441,13 @@ function TavasitCalculator() {
                             children: "קבלת ההחלטה לגבי הצורך לרסס כנגד עין טווס היא באחריות המגדל."
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 202,
+                            lineNumber: 203,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 198,
+                    lineNumber: 199,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -454,7 +457,7 @@ function TavasitCalculator() {
                             children: " מערכת טווזית פותחה במחלקה לפטולוגיה של צמחים וחקר העשבים של מכון וולקני על ידי ד״ר דוד עזרא, דוד יגזאו, יותם גילת ופרופ׳ דני שטיינברג"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 208,
+                            lineNumber: 209,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -463,19 +466,19 @@ function TavasitCalculator() {
                             children: "התחל"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 209,
+                            lineNumber: 210,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 207,
+                    lineNumber: 208,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 180,
+            lineNumber: 181,
             columnNumber: 12
         }, this);
     };
@@ -484,10 +487,10 @@ function TavasitCalculator() {
             className: "flex justify-center flex-col items-center",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    children: "האם ירדו לפחות 15 מ״מ גשם ביום אחד או מספר ימים רצופים?      "
+                    children: "האם היה אירוע גשם שהסתיים בשבועיים האחרונים? "
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 218,
+                    lineNumber: 219,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -503,7 +506,7 @@ function TavasitCalculator() {
                             children: "כן"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 221,
+                            lineNumber: 222,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -517,19 +520,19 @@ function TavasitCalculator() {
                             children: "לא"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 222,
+                            lineNumber: 223,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 220,
+                    lineNumber: 221,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 217,
+            lineNumber: 218,
             columnNumber: 12
         }, this);
     };
@@ -537,10 +540,17 @@ function TavasitCalculator() {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    children: "יש לבחור זן זית"
+                    children: "מהו הזמן העיקרי בחלקה?"
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 229,
+                    lineNumber: 230,
+                    columnNumber: 7
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    children: "בחר מהרשימה:"
+                }, void 0, false, {
+                    fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
+                    lineNumber: 231,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -563,12 +573,12 @@ function TavasitCalculator() {
                                     children: key
                                 }, key, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 238,
+                                    lineNumber: 241,
                                     columnNumber: 57
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 231,
+                            lineNumber: 234,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
@@ -583,24 +593,24 @@ function TavasitCalculator() {
                                 "clip-rule": "evenodd"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                lineNumber: 241,
+                                lineNumber: 244,
                                 columnNumber: 11
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 240,
+                            lineNumber: 243,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 230,
+                    lineNumber: 233,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 228,
+            lineNumber: 229,
             columnNumber: 12
         }, this);
     };
@@ -622,50 +632,50 @@ function TavasitCalculator() {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    children: "יש להזין טמפרטורת מינימום וכמות גשם ולאחר מכן הוסף. לאחר סיום הזנה יש ללחוץ חשב."
+                    children: "רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל יום באירוע הגשם. "
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 258,
+                    lineNumber: 261,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "mt-3 grid grid-cols-3",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                            type: "number",
-                            name: "rainAmount",
-                            placeholder: "הכנס כמות גשם",
-                            value: rainAmount,
-                            onChange: (e)=>setRainAmount(e.target.value)
-                        }, void 0, false, {
-                            fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 261,
-                            columnNumber: 9
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                            type: "number",
-                            name: "temp",
-                            placeholder: "הכנס טממפרטורת מינימום",
-                            value: minTemp,
-                            onChange: (e)=>setMinTemp(e.target.value)
-                        }, void 0, false, {
-                            fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 269,
-                            columnNumber: 9
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                            className: "m-5 ml-2",
-                            onClick: addRainTempPair,
-                            children: "הוסף"
-                        }, void 0, false, {
-                            fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 276,
-                            columnNumber: 9
-                        }, this)
-                    ]
-                }, void 0, true, {
+                    children: "הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולחץ ״הוסף״ על מנת להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״."
+                }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 260,
+                    lineNumber: 262,
+                    columnNumber: 7
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                    className: "m-5",
+                    type: "number",
+                    name: "rainAmount",
+                    placeholder: "הכנס כמות גשם",
+                    value: rainAmount,
+                    onChange: (e)=>setRainAmount(e.target.value)
+                }, void 0, false, {
+                    fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
+                    lineNumber: 263,
+                    columnNumber: 7
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                    className: "m-5",
+                    type: "number",
+                    name: "temp",
+                    placeholder: "הכנס טממפרטורת מינימום",
+                    value: minTemp,
+                    onChange: (e)=>setMinTemp(e.target.value)
+                }, void 0, false, {
+                    fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
+                    lineNumber: 271,
+                    columnNumber: 7
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                    className: "m-5 ml-2",
+                    onClick: addRainTempPair,
+                    children: "הוסף"
+                }, void 0, false, {
+                    fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
+                    lineNumber: 279,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -679,32 +689,32 @@ function TavasitCalculator() {
                                 ]
                             }, index, true, {
                                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                lineNumber: 281,
+                                lineNumber: 283,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                        lineNumber: 279,
+                        lineNumber: 281,
                         columnNumber: 9
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 278,
+                    lineNumber: 280,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 257,
+            lineNumber: 260,
             columnNumber: 12
         }, this);
     };
     const renderNoCalc = ()=>{
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            children: !formData.rainEvent ? " יש לנסות שוב כאשר יהיה אירוע גשם" : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"
+            children: !formData.rainEvent ? "על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. המשך לאחר אירוע גשם הבא" : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"
         }, void 0, false, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 289,
+            lineNumber: 291,
             columnNumber: 12
         }, this);
     };
@@ -719,7 +729,7 @@ function TavasitCalculator() {
                     children: "האם יש נגיעות בחלקה?"
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 298,
+                    lineNumber: 300,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -735,7 +745,7 @@ function TavasitCalculator() {
                             children: "כן"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 302,
+                            lineNumber: 304,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -749,19 +759,19 @@ function TavasitCalculator() {
                             children: "לא"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 303,
+                            lineNumber: 305,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 301,
+                    lineNumber: 303,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 297,
+            lineNumber: 299,
             columnNumber: 12
         }, this);
     };
@@ -773,7 +783,7 @@ function TavasitCalculator() {
                     children: "מה העונה?"
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 310,
+                    lineNumber: 312,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -789,7 +799,7 @@ function TavasitCalculator() {
                             children: "סתיו"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 314,
+                            lineNumber: 316,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -803,7 +813,7 @@ function TavasitCalculator() {
                             children: "חורף"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 315,
+                            lineNumber: 317,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -817,19 +827,19 @@ function TavasitCalculator() {
                             children: "אביב"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 316,
+                            lineNumber: 318,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 313,
+                    lineNumber: 315,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 309,
+            lineNumber: 311,
             columnNumber: 12
         }, this);
     };
@@ -841,7 +851,7 @@ function TavasitCalculator() {
                     children: formData.endOfSeason ? "האם הייתה השנה נגיעות בחלקה?" : "האם הייתה נגיעות בעונה הקודמת?"
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 323,
+                    lineNumber: 325,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -857,7 +867,7 @@ function TavasitCalculator() {
                             children: "כן"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 327,
+                            lineNumber: 329,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -871,19 +881,19 @@ function TavasitCalculator() {
                             children: "לא"
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 328,
+                            lineNumber: 330,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 326,
+                    lineNumber: 328,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-            lineNumber: 322,
+            lineNumber: 324,
             columnNumber: 12
         }, this);
     };
@@ -917,12 +927,12 @@ function TavasitCalculator() {
                     children: renderCurrentPage()
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 359,
+                    lineNumber: 361,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                lineNumber: 358,
+                lineNumber: 360,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -945,7 +955,7 @@ function TavasitCalculator() {
                                     children: "הקודם"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 366,
+                                    lineNumber: 368,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -954,17 +964,17 @@ function TavasitCalculator() {
                                     size: "sm",
                                     type: "button",
                                     disabled: currentPage === 9 || currentPage === 8,
-                                    className: currentPage !== 7 ? 'visible' : 'invisible',
+                                    className: currentPage !== 7 && currentPage !== 1 && currentPage !== 2 ? 'visible' : 'invisible',
                                     children: "הבא"
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                    lineNumber: 375,
+                                    lineNumber: 377,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 365,
+                            lineNumber: 367,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -972,6 +982,7 @@ function TavasitCalculator() {
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$0$2e$0$2d$rc$2e$1_react$2d$dom$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$20241013_react$40$19$2e$0$2e$0$2d$rc$2d$cd22717c$2d$2024101_6a5b06430702e62dfab1f474eddcc451$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 onClick: ()=>{
                                     calcTavasit();
+                                    handleNext();
                                 },
                                 variant: "ghost",
                                 size: "sm",
@@ -980,33 +991,33 @@ function TavasitCalculator() {
                                 children: "חשב"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                                lineNumber: 387,
+                                lineNumber: 389,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                            lineNumber: 386,
+                            lineNumber: 388,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                    lineNumber: 364,
+                    lineNumber: 366,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-                lineNumber: 363,
+                lineNumber: 365,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/(tavasitCalculator)/page.tsx",
-        lineNumber: 357,
+        lineNumber: 359,
         columnNumber: 5
     }, this);
 }
-_s(TavasitCalculator, "0PnYdNKHtJgcNh/sLlSl8Qe+ZPw=");
+_s(TavasitCalculator, "MJPqE10DvHC6LEFWWJc8tLX6TEw=");
 _c = TavasitCalculator;
 var _c;
 __turbopack_refresh__.register(_c, "TavasitCalculator");

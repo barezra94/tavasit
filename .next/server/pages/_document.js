@@ -1,1 +1,5 @@
-"use strict";(()=>{var e={};e.id=660,e.ids=[660],e.modules={2785:e=>{e.exports=require("next/dist/compiled/next-server/pages.runtime.prod.js")},6689:e=>{e.exports=require("react")},997:e=>{e.exports=require("react/jsx-runtime")},5315:e=>{e.exports=require("path")}};var r=require("../webpack-runtime.js");r.C(e);var s=e=>r(r.s=e),t=r.X(0,[747],()=>s(3747));module.exports=t})();
+const CHUNK_PUBLIC_PATH = "server/pages/_document.js";
+const runtime = require("../chunks/ssr/[turbopack]_runtime.js");
+runtime.loadChunk("server/chunks/ssr/node_modules__pnpm_3efea8._.js");
+runtime.loadChunk("server/chunks/ssr/[root of the server]__f41634._.js");
+module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/.pnpm/next@15.0.0-rc.1_react-dom@19.0.0-rc-cd22717c-20241013_react@19.0.0-rc-cd22717c-2024101_6a5b06430702e62dfab1f474eddcc451/node_modules/next/document.js [ssr] (ecmascript)", CHUNK_PUBLIC_PATH).exports;
