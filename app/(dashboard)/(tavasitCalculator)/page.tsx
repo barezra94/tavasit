@@ -206,7 +206,7 @@ export default function TavasitCalculator() {
       </div>
 
       <div className='flex flex-row items-center'>
-        <div> מערכת טווזית פותחה במחלקה לפטולוגיה של צמחים וחקר העשבים של מכון וולקני על ידי ד״ר דוד עזרא, דוד יגזאו, יותם גילת ופרופ׳ דני שטיינברג</div>
+        <div> מערכת טווזית פותחה במחלקה לפתולוגיה של צמחים וחקר העשבים של מכון וולקני על ידי ד״ר דוד עזרא, דוד יגזאו, יותם גילת ופרופ׳ דני שטיינברג</div>
         <Button className="w-1/3 mt-5 bg-green-700" onClick={handleNext}>התחל</Button>
       </div>
 
@@ -380,7 +380,7 @@ export default function TavasitCalculator() {
               size="sm"
               type="button"
               disabled={currentPage === PageNumber.FINAL_NO_CALC || currentPage === PageNumber.FINAL_WITH_CALC}
-              className={(currentPage !== PageNumber.RAIN_TEMP && currentPage !== PageNumber.WELCOME && currentPage !== PageNumber.RAIN_EVENT) ? 'visible' : 'invisible'}
+              className={`bg-green-700 text-white ${(currentPage !== PageNumber.RAIN_TEMP && currentPage !== PageNumber.WELCOME && currentPage !== PageNumber.RAIN_EVENT) ? 'visible' : 'invisible'}`}
             >
               הבא
             </Button>
@@ -391,13 +391,13 @@ export default function TavasitCalculator() {
               variant="ghost"
               size="sm"
               type="button"
-              className={currentPage === PageNumber.RAIN_TEMP ? 'visible' : 'invisible'}
+              className={`bg-green-700 text-white ${currentPage === PageNumber.RAIN_TEMP ? 'visible' : 'invisible'}`}
             >
               חשב
             </Button>
           </div>
         </form>
       </CardFooter>
-    </Card>
+    </Card >
   );
 }
