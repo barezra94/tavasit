@@ -4,8 +4,6 @@ import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
   title: 'טווזית',
-  description:
-    'מחשבון לזיהוי מחלת הטווזית'
 };
 
 export default function RootLayout({

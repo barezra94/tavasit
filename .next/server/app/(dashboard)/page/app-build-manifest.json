@@ -1,0 +1,26 @@
+{
+  "pages": {
+    "/(dashboard)/page": [
+      "static/chunks/_dc8beb._.js",
+      "static/chunks/app_favicon_ico_mjs_62bb54._.js",
+      "static/chunks/app_globals_73c377.css",
+      "static/chunks/_2f6d41._.js",
+      "static/chunks/app_layout_tsx_b0b3ad._.js",
+      "static/chunks/node_modules__pnpm_e63372._.js",
+      "static/chunks/_e017d2._.js",
+      "static/chunks/app_(dashboard)_layout_tsx_748cff._.js",
+      "static/chunks/app_(dashboard)_error_tsx_35572d._.js",
+      "static/chunks/app_(dashboard)_error_tsx_098f53._.js",
+      "static/chunks/_52107b._.js",
+      "static/chunks/app_(dashboard)_page_tsx_098f53._.js",
+      "static/chunks/8ef80_next_dist_compiled_react-dom_56ab1a._.js",
+      "static/chunks/8ef80_next_dist_compiled_0696a0._.js",
+      "static/chunks/8ef80_next_dist_client_aeb833._.js",
+      "static/chunks/8ef80_next_dist_8f8db8._.js",
+      "static/chunks/90823_@swc_helpers_cjs_6ab2e1._.js",
+      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_d8770b._.js",
+      "static/chunks/_c4c472._.js",
+      "static/chunks/_4403ed._.js"
+    ]
+  }
+}
