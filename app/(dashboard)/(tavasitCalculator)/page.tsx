@@ -74,6 +74,7 @@ const oliveTypes = {
 
 export default function TavasitCalculator() {
   const [currentPage, setCurrentPage] = useState(PageNumber.WELCOME);
+  const [previousPage, setPreviousPage] = useState(PageNumber.WELCOME);
   const [formData, setFormData] = useState<FormData>({
     rainEvent: true,
     contamination: true,
@@ -85,6 +86,30 @@ export default function TavasitCalculator() {
 
   const [rainAmount, setRainAmount] = useState('');
   const [minTemp, setMinTemp] = useState('');
+
+  // Add the style tag here
+  useEffect(() => {
+    // Create style element
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = `
+      /* Add a CSS class to hide number input spinners */
+      .no-spinner::-webkit-outer-spin-button,
+      .no-spinner::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .no-spinner {
+        -moz-appearance: textfield;
+      }
+    `;
+    // Append to head
+    document.head.appendChild(styleElement);
+
+    // Clean up on unmount
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   useEffect(() => {
     if (currentPage === PageNumber.RAIN_EVENT && formData.rainEvent !== undefined) {
@@ -128,6 +153,7 @@ export default function TavasitCalculator() {
 
   const handleNext = () => {
     console.log('handleNext fired at page:', currentPage);
+    setPreviousPage(currentPage)
     if (currentPage === PageNumber.RAIN_EVENT) {
       if (!formData.rainEvent) {
         setCurrentPage(PageNumber.FINAL_NO_CALC);
@@ -173,7 +199,7 @@ export default function TavasitCalculator() {
       })
       setCurrentPage(PageNumber.WELCOME)
     } else {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage(previousPage);
     }
   };
 
@@ -190,9 +216,6 @@ export default function TavasitCalculator() {
         </div>
         <div className='flex flex-col items-center'>
           <img src='/tavazit-logo.jpeg' alt="טווזית לוגו" />
-          <div className='text-3xl font-bold mb-5 text-green-700'>
-            PED-man
-          </div>
         </div>
       </div>
 
@@ -218,6 +241,7 @@ export default function TavasitCalculator() {
     return <div className='flex justify-center flex-col items-center'>
       <div>
         האם היה אירוע גשם שהסתיים בשבועיים האחרונים? </div>
+      <div>אירוע גשם: יום או מספר ימים ברצף שבכל אחד מהם ירדו יותר מ 0.1 מ"מ גשם</div>
       <div>
         <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, rainEvent: true }) }}>כן</Button>
         <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, rainEvent: false }) }}>לא</Button>
@@ -261,18 +285,18 @@ export default function TavasitCalculator() {
       <div>רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל יום באירוע הגשם. </div>
       <div>הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולחץ ״הוסף״ על מנת להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״.</div>
       <input
-        className='m-5'
+        className='m-5 no-spinner'
         type="number"
         name="rainAmount"
-        placeholder="הכנס כמות גשם"
+        placeholder="הכנס כמות גשם (מ״מ)"
         value={rainAmount}
         onChange={e => setRainAmount(e.target.value)}
       />
       <input
-        className='m-5'
+        className='m-5 no-spinner'
         type="number"
         name="temp"
-        placeholder="הכנס טממפרטורת מינימום"
+        placeholder="הכנס טמפרטורת מינימום (מעלות)"
         value={minTemp}
         onChange={e => setMinTemp(e.target.value)}
       />
@@ -289,7 +313,7 @@ export default function TavasitCalculator() {
 
   const renderNoCalc = () => {
     return <div>
-      {!formData.rainEvent ? "על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. המשך לאחר אירוע גשם הבא" : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
+      {!formData.rainEvent ? <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים נראה שכרגע אין צורך לטפל כנגד עין טווס, המשך לאחר סיום אירוע הגשם הבא</div> : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
     </div>
   }
 
