@@ -131,11 +131,11 @@ export default function TavasitCalculator() {
     }, 0);
 
     if (totalAmountOfRain < 15) {
-      return <div>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
+      return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
     }
 
     if (!temps) {
-      return <div>יש לפנות למדריך</div>
+      return <div className='bg-sky-300 p-5 rounded-md'>יש לפנות למדריך</div>
     }
 
     const enteredTemps = formData.rainTempPairs.map(pair => parseFloat(pair.minTemp));
@@ -144,10 +144,11 @@ export default function TavasitCalculator() {
     }, 0);
     const temp = sumOfAllTemps / enteredTemps.length;
     if (temp > temps[1] || temp < temps[0]) {
-      return <div>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
+      return <div className='bg-sky-300 p-5 rounded-md'>
+        על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. בדוק שוב לאחר אירוע הגשם הבא.</div>
     }
 
-    return <div>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.</div>
+    return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.</div>
 
   }
 
@@ -316,8 +317,8 @@ export default function TavasitCalculator() {
   }
 
   const renderNoCalc = () => {
-    return <div>
-      {!formData.rainEvent ? <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים נראה שכרגע אין צורך לטפל כנגד עין טווס, המשך לאחר סיום אירוע הגשם הבא</div> : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
+    return <div className='bg-sky-300 p-5 rounded-md'>
+      {!formData.rainEvent ? <div>על פי הנתונים נראה שכרגע אין צורך לטפל כנגד עין טווס, המשך לאחר סיום אירוע הגשם הבא</div> : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
     </div>
   }
 
