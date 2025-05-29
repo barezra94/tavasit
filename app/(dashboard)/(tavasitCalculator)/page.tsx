@@ -233,7 +233,7 @@ export default function TavasitCalculator() {
         <Button className="w-1/3 mt-5 bg-green-700" onClick={handleNext}>התחל</Button>
       </div>
 
-      <div className='flex flex-row items-center'>
+      <div className='flex flex-row items-right'>
         <div> הפניה באתר זה הינה בשפת זכר, אבל פונה לכל המגזרים</div>
       </div>
 
