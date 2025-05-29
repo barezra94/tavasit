@@ -233,6 +233,10 @@ export default function TavasitCalculator() {
         <Button className="w-1/3 mt-5 bg-green-700" onClick={handleNext}>התחל</Button>
       </div>
 
+      <div className='flex flex-row items-center'>
+        <div> הפניה באתר זה הינה בשפת זכר, אבל פונה לכל המגזרים</div>
+      </div>
+
 
     </div>
   }
@@ -251,7 +255,7 @@ export default function TavasitCalculator() {
 
   const renderOliveType = () => {
     return <div>
-      <div>מהו הזמן העיקרי בחלקה?</div>
+      <div>מהו הזן העיקרי בחלקה?</div>
       <div>בחר מהרשימה:</div>
 
       <div className="mt-2 grid grid-cols-1">
@@ -282,8 +286,8 @@ export default function TavasitCalculator() {
 
   const renderRainTemp = () => {
     return <div>
-      <div>רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל יום באירוע הגשם. </div>
-      <div>הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולחץ ״הוסף״ על מנת להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״.</div>
+      <div>רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל אחד מהימים של אירוע הגשם. </div>
+      <div>הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולאחר מכן ״הוסף״ כדי להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״.</div>
       <input
         className='m-5 no-spinner'
         type="number"
@@ -293,7 +297,7 @@ export default function TavasitCalculator() {
         onChange={e => setRainAmount(e.target.value)}
       />
       <input
-        className='m-5 no-spinner'
+        className='m-5 no-spinner w-64'
         type="number"
         name="temp"
         placeholder="הכנס טמפרטורת מינימום (מעלות)"
