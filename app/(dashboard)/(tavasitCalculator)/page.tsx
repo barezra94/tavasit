@@ -9,6 +9,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { DebugPanel } from '@/components/DebugPanel';
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export enum PageNumber {
   WELCOME = 1,
   RAIN_EVENT,

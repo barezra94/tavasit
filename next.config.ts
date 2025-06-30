@@ -20,5 +20,11 @@ export default {
   // Optimize for production
   compress: true,
   // Disable x-powered-by header for security
-  poweredByHeader: false
+  poweredByHeader: false,
+  // Configure for client-side heavy apps
+  experimental: {
+    // Disable worker threads to prevent CSS issues
+    workerThreads: false,
+    cpus: 1
+  }
 };
