@@ -20,9 +20,5 @@ export default {
   // Optimize for production
   compress: true,
   // Disable x-powered-by header for security
-  poweredByHeader: false,
-  // Environment variables
-  env: {
-    NODE_ENV: process.env.NODE_ENV || 'development'
-  }
+  poweredByHeader: false
 };
