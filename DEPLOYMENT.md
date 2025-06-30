@@ -19,10 +19,11 @@ This guide will help you deploy your Tavasit calculator to AWS Amplify.
    - Compression enabled
    - Security headers configured
    - SWC minification enabled
+4. **Package Manager**: Configured for pnpm (not npm)
 
 ### ✅ Files Added/Modified
 
-- `amplify.yml` - AWS Amplify build configuration
+- `amplify.yml` - AWS Amplify build configuration (configured for pnpm)
 - `next.config.ts` - Updated for production optimization
 - All debug logging wrapped with environment checks
 - Debug panel conditionally rendered
@@ -46,10 +47,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm install -g pnpm
+        - pnpm install --frozen-lockfile
     build:
       commands:
-        - npm run build
+        - pnpm run build
   artifacts:
     baseDirectory: .next
     files:
@@ -58,6 +60,7 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+      - .pnpm-store/**/*
 ```
 
 ### 3. Environment Variables (Optional)
@@ -97,8 +100,9 @@ If you need any environment variables, add them in the Amplify console:
 ### Build Failures
 
 1. **Node.js Version**: Ensure your `package.json` specifies Node.js 18+
-2. **Dependencies**: Check that all dependencies are properly listed
-3. **Build Commands**: Verify `npm run build` works locally
+2. **Dependencies**: Check that all dependencies are properly listed in `pnpm-lock.yaml`
+3. **Build Commands**: Verify `pnpm run build` works locally
+4. **Package Manager**: Ensure you're using pnpm, not npm
 
 ### Runtime Issues
 
@@ -153,6 +157,6 @@ Your deployment is successful when:
 
 If you encounter issues:
 1. Check the Amplify build logs
-2. Verify your local build works (`npm run build`)
-3. Test the app locally in production mode (`NODE_ENV=production npm start`)
+2. Verify your local build works (`pnpm run build`)
+3. Test the app locally in production mode (`NODE_ENV=production pnpm start`)
 4. Review the troubleshooting section above 

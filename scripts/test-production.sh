@@ -13,11 +13,11 @@ rm -rf node_modules/.cache
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm ci
+pnpm install --frozen-lockfile
 
 # Build the app
 echo "🔨 Building the app..."
-npm run build
+pnpm run build
 
 # Check if build was successful
 if [ $? -eq 0 ]; then
@@ -26,7 +26,7 @@ if [ $? -eq 0 ]; then
     echo "📱 Open http://localhost:3000 to test"
     echo "🔍 Check that no debug logs appear in console"
     echo "🐛 Verify debug panel is not visible"
-    npm start
+    pnpm start
 else
     echo "❌ Build failed!"
     exit 1
