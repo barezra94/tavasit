@@ -7,6 +7,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DebugPanel } from '@/components/DebugPanel';
 
 export enum PageNumber {
   WELCOME = 1,
@@ -16,10 +17,27 @@ export enum PageNumber {
   MR_QUESTION_SEASON,
   MR_QUESTION_CONTAMIATION,
   RAIN_TEMP,
+  SPRAYING_QUESTION,
   FINAL_WITH_CALC,
   FINAL_NO_CALC,
-
 }
+
+// Helper function to get page name for debugging
+const getPageName = (pageNumber: PageNumber): string => {
+  switch (pageNumber) {
+    case PageNumber.WELCOME: return 'WELCOME';
+    case PageNumber.RAIN_EVENT: return 'RAIN_EVENT';
+    case PageNumber.OLIVE_TYPE: return 'OLIVE_TYPE';
+    case PageNumber.RESELINCE_QUESTION: return 'RESELINCE_QUESTION';
+    case PageNumber.MR_QUESTION_SEASON: return 'MR_QUESTION_SEASON';
+    case PageNumber.MR_QUESTION_CONTAMIATION: return 'MR_QUESTION_CONTAMIATION';
+    case PageNumber.RAIN_TEMP: return 'RAIN_TEMP';
+    case PageNumber.SPRAYING_QUESTION: return 'SPRAYING_QUESTION';
+    case PageNumber.FINAL_WITH_CALC: return 'FINAL_WITH_CALC';
+    case PageNumber.FINAL_NO_CALC: return 'FINAL_NO_CALC';
+    default: return `UNKNOWN(${pageNumber})`;
+  }
+};
 
 interface RainTempPair {
   rainAmount: string;
@@ -33,6 +51,7 @@ interface FormData {
   oliveType: OliveSensitivityType;
   oliveTypeName: string;
   rainTempPairs: RainTempPair[];
+  sprayingInPastTwoWeeks?: boolean;
 }
 
 enum OliveSensitivityType {
@@ -74,7 +93,8 @@ const oliveTypes = {
 
 export default function TavasitCalculator() {
   const [currentPage, setCurrentPage] = useState(PageNumber.WELCOME);
-  const [previousPage, setPreviousPage] = useState(PageNumber.WELCOME);
+  const [navigationHistory, setNavigationHistory] = useState<PageNumber[]>([PageNumber.WELCOME]);
+  const [calculationResult, setCalculationResult] = useState<{ type: string; message: string } | null>(null);
   const [formData, setFormData] = useState<FormData>({
     rainEvent: true,
     contamination: true,
@@ -82,10 +102,20 @@ export default function TavasitCalculator() {
     oliveType: oliveTypes[Object.keys(oliveTypes)[0] as keyof typeof oliveTypes],
     oliveTypeName: Object.keys(oliveTypes)[0],
     rainTempPairs: [],
+    sprayingInPastTwoWeeks: undefined,
   });
 
   const [rainAmount, setRainAmount] = useState('');
   const [minTemp, setMinTemp] = useState('');
+
+  // Debug logging for state changes
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Debug - Current page:', currentPage, `(${getPageName(currentPage)})`);
+      console.log('🔍 Debug - Navigation history:', navigationHistory.map(p => `${p}(${getPageName(p)})`));
+      console.log('🔍 Debug - Form data:', formData);
+    }
+  }, [currentPage, navigationHistory, formData]);
 
   // Add the style tag here
   useEffect(() => {
@@ -120,22 +150,62 @@ export default function TavasitCalculator() {
       handleNext();
     } else if (currentPage === PageNumber.MR_QUESTION_CONTAMIATION && formData.contamination !== undefined) {
       handleNext();
+    } else if (currentPage === PageNumber.SPRAYING_QUESTION && formData.sprayingInPastTwoWeeks !== undefined) {
+      handleNext();
     }
   }, [formData]);
 
 
   const calcTavasit = () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧮 Starting Tavasit calculation...');
+      console.log('📊 Form data for calculation:', formData);
+    }
+
     const temps = minTempsForType[formData.oliveType]
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌡️ Temperature thresholds for olive type:', formData.oliveType, temps);
+    }
+
+    // Check if any day has rain equal to or less than 0.1mm
+    const hasDayWith01mmOrLess = formData.rainTempPairs.some(pair => {
+      const rainAmount = parseFloat(pair.rainAmount);
+      return rainAmount <= 0.1;
+    });
+
+    // Log all rain amounts for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌧️ Daily rain amounts:', formData.rainTempPairs.map((pair, index) =>
+        `Day ${index + 1}: ${pair.rainAmount}mm`
+      ));
+    }
+
+    if (hasDayWith01mmOrLess) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Found day with rain ≤ 0.1mm, no treatment needed');
+      }
+      return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
+    }
+
     const totalAmountOfRain = formData.rainTempPairs.reduce((total, pair) => {
       return total + parseFloat(pair.rainAmount);
     }, 0);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌧️ Total rain amount:', totalAmountOfRain, 'mm');
+    }
 
     if (totalAmountOfRain < 15) {
-      return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס</div>
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Insufficient rain (< 15mm), no treatment needed');
+      }
+      return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
     }
 
     if (!temps) {
-      return <div className='bg-sky-300 p-5 rounded-md'>יש לפנות למדריך</div>
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ No temperature thresholds available, consult guide');
+      }
+      return { type: 'CONSULT_GUIDE', message: 'יש לפנות למדריך' };
     }
 
     const enteredTemps = formData.rainTempPairs.map(pair => parseFloat(pair.minTemp));
@@ -143,64 +213,195 @@ export default function TavasitCalculator() {
       return total + parseFloat(pair.minTemp);
     }, 0);
     const temp = sumOfAllTemps / enteredTemps.length;
-    if (temp > temps[1] || temp < temps[0]) {
-      return <div className='bg-sky-300 p-5 rounded-md'>
-        על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. בדוק שוב לאחר אירוע הגשם הבא.</div>
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌡️ Average temperature:', temp, '°C');
+      console.log('📏 Temperature range:', temps[0], '-', temps[1], '°C');
     }
 
-    return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.</div>
+    if (temp > temps[1] || temp < temps[0]) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Temperature outside range, no treatment needed');
+      }
+      return {
+        type: 'NO_TREATMENT',
+        message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. בדוק שוב לאחר אירוע הגשם הבא.'
+      };
+    }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Treatment recommended - infection event occurred');
+    }
+    return { type: 'TREATMENT_RECOMMENDED', message: 'על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.' };
   }
 
   const handleNext = () => {
-    console.log('handleNext fired at page:', currentPage);
-    setPreviousPage(currentPage)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚀 handleNext fired at page:', currentPage, `(${getPageName(currentPage)})`);
+      console.log('📊 Current form data:', formData);
+    }
+
+    let nextPage: PageNumber;
+
     if (currentPage === PageNumber.RAIN_EVENT) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🌧️ Rain event decision:', formData.rainEvent);
+      }
       if (!formData.rainEvent) {
-        setCurrentPage(PageNumber.FINAL_NO_CALC);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_NO_CALC (no rain event)');
+        }
+        nextPage = PageNumber.FINAL_NO_CALC;
       } else {
-        setCurrentPage(currentPage + 1);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to next page (rain event confirmed)');
+        }
+        nextPage = currentPage + 1;
       }
     } else if (currentPage === PageNumber.RAIN_TEMP) {
-      if (formData.rainTempPairs) {
-        setCurrentPage(currentPage + 1);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🌡️ Rain temp pairs:', formData.rainTempPairs);
+      }
+      if (formData.rainTempPairs && formData.rainTempPairs.length > 0) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to calculation page');
+        }
+        nextPage = currentPage + 1;
+      } else {
+        return; // Don't navigate if no rain temp pairs
       }
     } else if (currentPage === PageNumber.OLIVE_TYPE) {
-      if (formData.oliveType === OliveSensitivityType.HR || formData.oliveType === OliveSensitivityType.I) {
-        setCurrentPage(PageNumber.RESELINCE_QUESTION);
-      } else if (formData.oliveType === OliveSensitivityType.MR) {
-        setCurrentPage(PageNumber.MR_QUESTION_SEASON)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🫒 Olive type selected:', formData.oliveType, formData.oliveTypeName);
       }
-      else {
-        setCurrentPage(PageNumber.RAIN_TEMP)
+      if (formData.oliveType === OliveSensitivityType.HR || formData.oliveType === OliveSensitivityType.I) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to RESELINCE_QUESTION (HR or I type)');
+        }
+        nextPage = PageNumber.RESELINCE_QUESTION;
+      } else if (formData.oliveType === OliveSensitivityType.MR) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to MR_QUESTION_SEASON (MR type)');
+        }
+        nextPage = PageNumber.MR_QUESTION_SEASON;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to RAIN_TEMP (HS or MS type)');
+        }
+        nextPage = PageNumber.RAIN_TEMP;
       }
     } else if (currentPage === PageNumber.RESELINCE_QUESTION) {
-      setCurrentPage(PageNumber.FINAL_NO_CALC);
-    } else if (currentPage === PageNumber.MR_QUESTION_CONTAMIATION) {
-      if (formData.contamination) {
-        setCurrentPage(PageNumber.RAIN_TEMP)
-      } else {
-        setCurrentPage(PageNumber.FINAL_NO_CALC)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🦠 Contamination question answered:', formData.contamination);
+        console.log('➡️ Going to FINAL_NO_CALC');
       }
+      nextPage = PageNumber.FINAL_NO_CALC;
+    } else if (currentPage === PageNumber.MR_QUESTION_CONTAMIATION) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🦠 MR contamination question answered:', formData.contamination);
+      }
+      if (formData.contamination) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to RAIN_TEMP (contamination confirmed)');
+        }
+        nextPage = PageNumber.RAIN_TEMP;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_NO_CALC (no contamination)');
+        }
+        nextPage = PageNumber.FINAL_NO_CALC;
+      }
+    } else if (currentPage === PageNumber.FINAL_WITH_CALC) {
+      // Check calculation result to determine next step
+      if (!calculationResult) {
+        const result = calcTavasit();
+        setCalculationResult(result);
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🧮 Calculation result:', calculationResult);
+      }
+
+      if (calculationResult?.type === 'TREATMENT_RECOMMENDED') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to SPRAYING_QUESTION (treatment recommended)');
+        }
+        nextPage = PageNumber.SPRAYING_QUESTION;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_NO_CALC (no treatment needed)');
+        }
+        nextPage = PageNumber.FINAL_NO_CALC;
+      }
+    } else if (currentPage === PageNumber.SPRAYING_QUESTION) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('💦 Spraying question answered:', formData.sprayingInPastTwoWeeks);
+      }
+      if (formData.sprayingInPastTwoWeeks) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_NO_CALC (sprayed recently)');
+        }
+        nextPage = PageNumber.FINAL_NO_CALC;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_WITH_CALC (spraying recommended)');
+        }
+        nextPage = PageNumber.FINAL_WITH_CALC;
+      }
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('➡️ Going to next page (default)');
+      }
+      nextPage = currentPage + 1;
     }
-    else {
-      setCurrentPage(currentPage + 1);
+
+    // Update navigation history and current page
+    setNavigationHistory(prevHistory => [...prevHistory, nextPage]);
+    setCurrentPage(nextPage);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📚 Updated navigation history:', [...navigationHistory, nextPage].map(p => `${p}(${getPageName(p)})`));
     }
   };
 
   const handlePrevious = () => {
     if (currentPage === PageNumber.FINAL_NO_CALC || currentPage === PageNumber.FINAL_WITH_CALC) {
+      // Reset everything when going back from final pages
       setFormData({
         rainEvent: true,
         contamination: true,
         endOfSeason: false,
         oliveType: oliveTypes[Object.keys(oliveTypes)[0] as keyof typeof oliveTypes],
         oliveTypeName: Object.keys(oliveTypes)[0],
-        rainTempPairs: []
+        rainTempPairs: [],
+        sprayingInPastTwoWeeks: undefined,
       })
+      setCalculationResult(null);
       setCurrentPage(PageNumber.WELCOME)
+      setNavigationHistory([PageNumber.WELCOME])
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Reset to WELCOME page');
+      }
     } else {
+      // Get the previous page from history
+      const newHistory = [...navigationHistory];
+
+      // Safety check: if we're at the first page, stay there
+      if (newHistory.length <= 1) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⚠️ Already at first page, cannot go back');
+        }
+        return;
+      }
+
+      newHistory.pop(); // Remove current page
+      const previousPage = newHistory[newHistory.length - 1] || PageNumber.WELCOME;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('➡️ Going to previous page:', previousPage, `(${getPageName(previousPage)})`);
+        console.log('📚 Updated navigation history:', newHistory.map(p => `${p}(${getPageName(p)})`));
+      }
+
       setCurrentPage(previousPage);
+      setNavigationHistory(newHistory);
     }
   };
 
@@ -322,7 +523,24 @@ export default function TavasitCalculator() {
     </div>
   }
 
-  const renderFinalCalc = () => { return calcTavasit() }
+  const renderFinalCalc = () => {
+    if (!calculationResult) {
+      const result = calcTavasit();
+      setCalculationResult(result);
+      return <div className='bg-sky-300 p-5 rounded-md'>{result.message}</div>;
+    }
+
+    // If we have a stored result, check spraying question
+    if (calculationResult.type === 'TREATMENT_RECOMMENDED') {
+      if (formData.sprayingInPastTwoWeeks === true) {
+        return <div className='bg-sky-300 p-5 rounded-md'>כבר בוצע ריסוס בשבועיים האחרונים, אין צורך לרסס שוב</div>;
+      } else if (formData.sprayingInPastTwoWeeks === false) {
+        return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס</div>;
+      }
+    }
+
+    return <div className='bg-sky-300 p-5 rounded-md'>{calculationResult.message}</div>;
+  }
 
   const renderReselinceQuestion = () => {
     return <div className='flex justify-center flex-col items-center'>
@@ -361,6 +579,19 @@ export default function TavasitCalculator() {
     </div>
   }
 
+  const renderSprayingQuestion = () => {
+    return <div className='flex justify-center flex-col items-center'>
+      <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס</div>
+      <div>
+        האם בוצע ריסוס כנגד עין טווס בשבועיים האחרונים?
+      </div>
+      <div>
+        <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, sprayingInPastTwoWeeks: true }) }}>כן</Button>
+        <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, sprayingInPastTwoWeeks: false }) }}>לא</Button>
+      </div>
+    </div>
+  }
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case PageNumber.WELCOME:
@@ -381,6 +612,8 @@ export default function TavasitCalculator() {
         return renderNoCalc()
       case PageNumber.FINAL_WITH_CALC:
         return renderFinalCalc()
+      case PageNumber.SPRAYING_QUESTION:
+        return renderSprayingQuestion()
     }
   }
 
@@ -427,6 +660,19 @@ export default function TavasitCalculator() {
           </div>
         </form>
       </CardFooter>
+
+      {/* Debug Panel - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <DebugPanel
+          currentPage={currentPage}
+          navigationHistory={navigationHistory}
+          formData={formData}
+          rainAmount={rainAmount}
+          minTemp={minTemp}
+          rainTempPairs={formData.rainTempPairs}
+          calculationResult={calculationResult}
+        />
+      )}
     </Card >
   );
 }
