@@ -15,15 +15,20 @@ export const revalidate = 0;
 
 export enum PageNumber {
   WELCOME = 1,
-  RAIN_EVENT,
-  OLIVE_TYPE,
-  RESELINCE_QUESTION,
-  MR_QUESTION_SEASON,
-  MR_QUESTION_CONTAMIATION,
-  RAIN_TEMP,
-  SPRAYING_QUESTION,
-  FINAL_WITH_CALC,
-  FINAL_NO_CALC,
+  RAIN_EVENT = 2,
+  OLIVE_TYPE = 3,
+  RESELINCE_QUESTION = 4,
+  MR_QUESTION_SEASON = 5,
+  MR_QUESTION_CONTAMIATION = 6,
+  RAIN_TEMP = 7,
+  SPRAYING_QUESTION = 8,
+  HARVEST_QUESTION = 9,
+  POST_HARVEST_QUESTION = 10,
+  RAIN_FORECAST_QUESTION = 11,
+  FINAL_WITH_CALC = 12,
+  FINAL_NO_CALC = 13,
+  FINAL_CONTINUE_TWO_WEEKS = 14,
+  THANK_YOU = 15,
 }
 
 // Helper function to get page name for debugging
@@ -37,8 +42,13 @@ const getPageName = (pageNumber: PageNumber): string => {
     case PageNumber.MR_QUESTION_CONTAMIATION: return 'MR_QUESTION_CONTAMIATION';
     case PageNumber.RAIN_TEMP: return 'RAIN_TEMP';
     case PageNumber.SPRAYING_QUESTION: return 'SPRAYING_QUESTION';
+    case PageNumber.HARVEST_QUESTION: return 'HARVEST_QUESTION';
+    case PageNumber.POST_HARVEST_QUESTION: return 'POST_HARVEST_QUESTION';
+    case PageNumber.RAIN_FORECAST_QUESTION: return 'RAIN_FORECAST_QUESTION';
     case PageNumber.FINAL_WITH_CALC: return 'FINAL_WITH_CALC';
     case PageNumber.FINAL_NO_CALC: return 'FINAL_NO_CALC';
+    case PageNumber.FINAL_CONTINUE_TWO_WEEKS: return 'FINAL_CONTINUE_TWO_WEEKS';
+    case PageNumber.THANK_YOU: return 'THANK_YOU';
     default: return `UNKNOWN(${pageNumber})`;
   }
 };
@@ -56,6 +66,9 @@ interface FormData {
   oliveTypeName: string;
   rainTempPairs: RainTempPair[];
   sprayingInPastTwoWeeks?: boolean;
+  harvestPlanned?: boolean;
+  moreRainExpected?: boolean;
+  twoWeeksPassedSinceInfection?: boolean;
 }
 
 enum OliveSensitivityType {
@@ -107,6 +120,9 @@ export default function TavasitCalculator() {
     oliveTypeName: Object.keys(oliveTypes)[0],
     rainTempPairs: [],
     sprayingInPastTwoWeeks: undefined,
+    harvestPlanned: undefined,
+    moreRainExpected: undefined,
+    twoWeeksPassedSinceInfection: undefined,
   });
 
   const [rainAmount, setRainAmount] = useState('');
@@ -156,6 +172,12 @@ export default function TavasitCalculator() {
       handleNext();
     } else if (currentPage === PageNumber.SPRAYING_QUESTION && formData.sprayingInPastTwoWeeks !== undefined) {
       handleNext();
+    } else if (currentPage === PageNumber.HARVEST_QUESTION && formData.harvestPlanned !== undefined) {
+      handleNext();
+    } else if (currentPage === PageNumber.POST_HARVEST_QUESTION && formData.twoWeeksPassedSinceInfection !== undefined) {
+      handleNext();
+    } else if (currentPage === PageNumber.RAIN_FORECAST_QUESTION && formData.moreRainExpected !== undefined) {
+      handleNext();
     }
   }, [formData]);
 
@@ -171,38 +193,11 @@ export default function TavasitCalculator() {
       console.log('🌡️ Temperature thresholds for olive type:', formData.oliveType, temps);
     }
 
-    // Check if any day has rain equal to or less than 0.1mm
-    const hasDayWith01mmOrLess = formData.rainTempPairs.some(pair => {
-      const rainAmount = parseFloat(pair.rainAmount);
-      return rainAmount <= 0.1;
-    });
-
     // Log all rain amounts for debugging
     if (process.env.NODE_ENV === 'development') {
       console.log('🌧️ Daily rain amounts:', formData.rainTempPairs.map((pair, index) =>
         `Day ${index + 1}: ${pair.rainAmount}mm`
       ));
-    }
-
-    if (hasDayWith01mmOrLess) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Found day with rain ≤ 0.1mm, no treatment needed');
-      }
-      return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
-    }
-
-    const totalAmountOfRain = formData.rainTempPairs.reduce((total, pair) => {
-      return total + parseFloat(pair.rainAmount);
-    }, 0);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🌧️ Total rain amount:', totalAmountOfRain, 'mm');
-    }
-
-    if (totalAmountOfRain < 15) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Insufficient rain (< 15mm), no treatment needed');
-      }
-      return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
     }
 
     if (!temps) {
@@ -212,30 +207,108 @@ export default function TavasitCalculator() {
       return { type: 'CONSULT_GUIDE', message: 'יש לפנות למדריך' };
     }
 
-    const enteredTemps = formData.rainTempPairs.map(pair => parseFloat(pair.minTemp));
-    const sumOfAllTemps = formData.rainTempPairs.reduce((total, pair) => {
-      return total + parseFloat(pair.minTemp);
-    }, 0);
-    const temp = sumOfAllTemps / enteredTemps.length;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🌡️ Average temperature:', temp, '°C');
-      console.log('📏 Temperature range:', temps[0], '-', temps[1], '°C');
+    // Split rain event into segments at days with <1.0mm rain OR temperatures outside range
+    const segments: RainTempPair[][] = [];
+    let currentSegment: RainTempPair[] = [];
+
+    for (const pair of formData.rainTempPairs) {
+      const rainAmount = parseFloat(pair.rainAmount);
+      const temperature = parseFloat(pair.minTemp);
+
+      // Check if this day breaks the rain event (either insufficient rain or bad temperature)
+      const isRainTooLow = rainAmount < 1.0;
+      const isTempOutOfRange = temperature < temps[0] || temperature > temps[1];
+
+      if (isRainTooLow || isTempOutOfRange) {
+        // End current segment if it has data
+        if (currentSegment.length > 0) {
+          segments.push([...currentSegment]);
+          currentSegment = [];
+        }
+        // Skip this day (it breaks the rain event)
+        if (process.env.NODE_ENV === 'development') {
+          if (isRainTooLow) {
+            console.log(`💧 Day with ${rainAmount}mm rain breaks segment (< 1.0mm)`);
+          }
+          if (isTempOutOfRange) {
+            console.log(`🌡️ Day with ${temperature}°C breaks segment (outside ${temps[0]}-${temps[1]}°C range)`);
+          }
+        }
+      } else {
+        // Add to current segment (both rain and temperature are acceptable)
+        currentSegment.push(pair);
+      }
     }
 
-    if (temp > temps[1] || temp < temps[0]) {
+    // Add final segment if it has data
+    if (currentSegment.length > 0) {
+      segments.push(currentSegment);
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Rain event segments:', segments.map((seg, i) =>
+        `Segment ${i + 1}: ${seg.length} days, ${seg.reduce((sum, p) => sum + parseFloat(p.rainAmount), 0).toFixed(1)}mm total`
+      ));
+    }
+
+    // If no valid segments, no treatment needed
+    if (segments.length === 0) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Temperature outside range, no treatment needed');
+        console.log('❌ No valid rain segments found, no treatment needed');
+      }
+      return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
+    }
+
+    // Check each segment for infection criteria
+    let hasInfectionEvent = false;
+
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔍 Checking segment ${i + 1}:`, segment.map(p => `${p.rainAmount}mm@${p.minTemp}°C`));
+      }
+
+      // Check total rain in segment
+      const segmentRainTotal = segment.reduce((total, pair) => {
+        return total + parseFloat(pair.rainAmount);
+      }, 0);
+
+      if (segmentRainTotal < 15) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`❌ Segment ${i + 1}: Insufficient rain (${segmentRainTotal.toFixed(1)}mm < 15mm)`);
+        }
+        continue; // Check next segment
+      }
+
+      // Calculate average temperature in segment (all temps are already within range due to segmentation)
+      const segmentTempSum = segment.reduce((total, pair) => {
+        return total + parseFloat(pair.minTemp);
+      }, 0);
+      const segmentAvgTemp = segmentTempSum / segment.length;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Segment ${i + 1}: Infection criteria met! Rain: ${segmentRainTotal.toFixed(1)}mm, Avg Temp: ${segmentAvgTemp.toFixed(1)}°C (all temps within ${temps[0]}-${temps[1]}°C range)`);
+      }
+
+      hasInfectionEvent = true;
+      break; // Found infection event, no need to check other segments
+    }
+
+    if (hasInfectionEvent) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Treatment recommended - infection event occurred in at least one segment');
+      }
+      return { type: 'TREATMENT_RECOMMENDED', message: 'על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.' };
+    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ No infection events found in any segment, no treatment needed');
       }
       return {
         type: 'NO_TREATMENT',
         message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. בדוק שוב לאחר אירוע הגשם הבא.'
       };
     }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Treatment recommended - infection event occurred');
-    }
-    return { type: 'TREATMENT_RECOMMENDED', message: 'על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.' };
   }
 
   const handleNext = () => {
@@ -347,15 +420,69 @@ export default function TavasitCalculator() {
         nextPage = PageNumber.FINAL_NO_CALC;
       } else {
         if (process.env.NODE_ENV === 'development') {
-          console.log('➡️ Going to FINAL_WITH_CALC (spraying recommended)');
+          console.log('➡️ Going to HARVEST_QUESTION (no recent spraying)');
         }
-        nextPage = PageNumber.FINAL_WITH_CALC;
+        nextPage = PageNumber.HARVEST_QUESTION;
+      }
+    } else if (currentPage === PageNumber.HARVEST_QUESTION) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🌾 Harvest question answered:', formData.harvestPlanned);
+      }
+      if (formData.harvestPlanned) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to POST_HARVEST_QUESTION (harvest planned)');
+        }
+        nextPage = PageNumber.POST_HARVEST_QUESTION;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to RAIN_FORECAST_QUESTION (no harvest planned, spray with approved product then check rain)');
+        }
+        nextPage = PageNumber.RAIN_FORECAST_QUESTION;
+      }
+    } else if (currentPage === PageNumber.POST_HARVEST_QUESTION) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⏰ Post-harvest question answered:', formData.twoWeeksPassedSinceInfection);
+      }
+      if (formData.twoWeeksPassedSinceInfection) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to THANK_YOU (two weeks passed since infection)');
+        }
+        nextPage = PageNumber.THANK_YOU;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to RAIN_FORECAST_QUESTION (less than two weeks since infection)');
+        }
+        nextPage = PageNumber.RAIN_FORECAST_QUESTION;
+      }
+    } else if (currentPage === PageNumber.RAIN_FORECAST_QUESTION) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🌧️ Rain forecast question answered:', formData.moreRainExpected);
+      }
+      if (formData.moreRainExpected) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to FINAL_CONTINUE_TWO_WEEKS (more rain expected)');
+        }
+        nextPage = PageNumber.FINAL_CONTINUE_TWO_WEEKS;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to THANK_YOU (no more rain expected)');
+        }
+        nextPage = PageNumber.THANK_YOU;
       }
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('➡️ Going to next page (default)');
+      // Handle final pages that should go to THANK_YOU
+      const finalPages = [PageNumber.FINAL_NO_CALC, PageNumber.FINAL_WITH_CALC, PageNumber.FINAL_CONTINUE_TWO_WEEKS];
+      if (finalPages.includes(currentPage as PageNumber)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to THANK_YOU page');
+        }
+        nextPage = PageNumber.THANK_YOU;
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('➡️ Going to next page (default)');
+        }
+        nextPage = currentPage + 1;
       }
-      nextPage = currentPage + 1;
     }
 
     // Update navigation history and current page
@@ -367,8 +494,8 @@ export default function TavasitCalculator() {
   };
 
   const handlePrevious = () => {
-    if (currentPage === PageNumber.FINAL_NO_CALC || currentPage === PageNumber.FINAL_WITH_CALC) {
-      // Reset everything when going back from final pages
+    if (currentPage === PageNumber.THANK_YOU) {
+      // Reset everything when going back from thank you page
       setFormData({
         rainEvent: true,
         contamination: true,
@@ -377,6 +504,9 @@ export default function TavasitCalculator() {
         oliveTypeName: Object.keys(oliveTypes)[0],
         rainTempPairs: [],
         sprayingInPastTwoWeeks: undefined,
+        harvestPlanned: undefined,
+        moreRainExpected: undefined,
+        twoWeeksPassedSinceInfection: undefined,
       })
       setCalculationResult(null);
       setCurrentPage(PageNumber.WELCOME)
@@ -427,7 +557,7 @@ export default function TavasitCalculator() {
 
       <div className='flex flex-col h-1/3 p-5'>
         <div className='text-2xl font-bold mb-5 justify-center'>
-          טווזית משתמשת בנתונים מטאורולוגים (גשם וטמפרטורה) ובמידע מקומי (זן נטוע, נגיעות בעין טווס והיסטוריית ריסוסים קודמים) לחיזוי הסבירות להתרחשות הדבקה.
+          מערכת טווזית משתמשת בנתונים מטאורולוגים (גשם וטמפרטורה) ובמידע מקומי (זן נטוע, נגיעות בעין טווס והיסטוריית ריסוסים קודמים) לחיזוי הסבירות להתרחשות הדבקה בעין טווס.
         </div>
         <div className='text-2xl font-bold mb-5 justify-center'>
           קבלת ההחלטה לגבי הצורך לרסס כנגד עין טווס היא באחריות המגדל.
@@ -495,7 +625,7 @@ export default function TavasitCalculator() {
       <div>רשום את כמות הגשם שירדה וטמפרטורת המינימום בכל אחד מהימים של אירוע הגשם. </div>
       <div>הזן את כמות הגשם שירדה ביום הראשון ואת טמפרטורת המינימום של היום הראשון ולאחר מכן ״הוסף״ כדי להזין את הנתונים של היום הבא באירוע. בסיום הזנת הנתונים יש ללחוץ על ״חשב״.</div>
       <input
-        className='m-5 no-spinner'
+        className='m-5 no-spinner border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'
         type="number"
         name="rainAmount"
         placeholder="הכנס כמות גשם (מ״מ)"
@@ -503,7 +633,7 @@ export default function TavasitCalculator() {
         onChange={e => setRainAmount(e.target.value)}
       />
       <input
-        className='m-5 no-spinner w-64'
+        className='m-5 no-spinner w-64 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'
         type="number"
         name="temp"
         placeholder="הכנס טמפרטורת מינימום (מעלות)"
@@ -522,6 +652,17 @@ export default function TavasitCalculator() {
   }
 
   const renderNoCalc = () => {
+    // If we have a calculation result, use that message
+    if (calculationResult && (calculationResult.type === 'NO_TREATMENT' || calculationResult.type === 'CONSULT_GUIDE')) {
+      return <div className='bg-sky-300 p-5 rounded-md'>{calculationResult.message}</div>;
+    }
+
+    // If we came from spraying question and user said they sprayed recently
+    if (formData.sprayingInPastTwoWeeks === true) {
+      return <div className='bg-sky-300 p-5 rounded-md'>כבר בוצע ריסוס בשבועיים האחרונים, אין צורך לרסס שוב</div>;
+    }
+
+    // Default logic for other scenarios
     return <div className='bg-sky-300 p-5 rounded-md'>
       {!formData.rainEvent ? <div>על פי הנתונים נראה שכרגע אין צורך לטפל כנגד עין טווס, המשך לאחר סיום אירוע הגשם הבא</div> : formData.contamination ? "יש להתייעץ עם מדריך" : "אין צורך לרסס"}
     </div>
@@ -596,6 +737,68 @@ export default function TavasitCalculator() {
     </div>
   }
 
+  const renderHarvestQuestion = () => {
+    return <div className='flex justify-center flex-col items-center'>
+      <div>
+        האם מתוכנן מסיק בתקופה המותרת לריסוס על פי התווית של התכשיר בו אתה מתכוון להשתמש?
+      </div>
+      <div>
+        <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, harvestPlanned: true }) }}>כן</Button>
+        <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, harvestPlanned: false }) }}>לא</Button>
+      </div>
+    </div>
+  }
+
+  const renderPostHarvestQuestion = () => {
+    return <div className='flex justify-center flex-col items-center'>
+      <div className='bg-sky-300 p-5 rounded-md mb-4'>המשך אחרי המסיק</div>
+      <div>
+        האם עברו יותר משבועיים מסיום אירוע ההדבקה?
+      </div>
+      <div>
+        <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, twoWeeksPassedSinceInfection: true }) }}>כן</Button>
+        <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, twoWeeksPassedSinceInfection: false }) }}>לא</Button>
+      </div>
+    </div>
+  }
+
+  const renderRainForecastQuestion = () => {
+    return <div className='flex justify-center flex-col items-center'>
+      <div className='bg-sky-300 p-5 rounded-md mb-4'>רסס בתכשיר מורשה מתאים</div>
+      <div>
+        האם סביר שהשנה ירד עוד גשם?
+      </div>
+      <div>
+        <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, moreRainExpected: true }) }}>כן</Button>
+        <Button className='m-5 mr-2' onClick={() => { setFormData({ ...formData, moreRainExpected: false }) }}>לא</Button>
+      </div>
+    </div>
+  }
+
+  const renderFinalContinueTwoWeeks = () => {
+    return <div className='bg-sky-300 p-5 rounded-md'>
+      המשך אחרי שעברו שבועיים מהריסוס
+    </div>
+  }
+
+
+  const renderThankYou = () => {
+    return <div className='flex justify-center flex-col items-center'>
+      <div className='text-6xl font-bold mb-5 justify-center text-green-700'>
+        סיום
+      </div>
+      <div className='text-3xl font-bold mb-5 text-center'>
+        תודה שהשתמשת במערכת טווזית
+      </div>
+      <div className='text-xl mb-5 text-center'>
+        זכור כי קבלת ההחלטה לגבי הצורך לרסס כנגד עין טווס היא באחריות המגדל
+      </div>
+      <Button className="mt-5 bg-green-700" onClick={handlePrevious}>
+        התחל מחדש
+      </Button>
+    </div>
+  }
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case PageNumber.WELCOME:
@@ -618,65 +821,99 @@ export default function TavasitCalculator() {
         return renderFinalCalc()
       case PageNumber.SPRAYING_QUESTION:
         return renderSprayingQuestion()
+      case PageNumber.HARVEST_QUESTION:
+        return renderHarvestQuestion()
+      case PageNumber.POST_HARVEST_QUESTION:
+        return renderPostHarvestQuestion()
+      case PageNumber.RAIN_FORECAST_QUESTION:
+        return renderRainForecastQuestion()
+      case PageNumber.FINAL_CONTINUE_TWO_WEEKS:
+        return renderFinalContinueTwoWeeks()
+      case PageNumber.THANK_YOU:
+        return renderThankYou()
     }
   }
 
   return (
-    <Card>
-      <CardContent >
-        <div className='flex w-full justify-center items-center m-5'>
-          {renderCurrentPage()}
-        </div>
-      </CardContent>
-      <CardFooter className={[PageNumber.RAIN_EVENT, PageNumber.WELCOME].includes(currentPage) ? 'invisible' : 'visible'}>
-        <form className="flex items-center w-full justify-between">
-          <div className="text-xs text-muted-foreground">
-            <Button
-              onClick={handlePrevious}
-              variant="ghost"
-              size="sm"
-              type="button"
-              disabled={currentPage === PageNumber.WELCOME}
-            >
-              הקודם
-            </Button>
-            <Button
-              onClick={handleNext}
-              variant="ghost"
-              size="sm"
-              type="button"
-              disabled={currentPage === PageNumber.FINAL_NO_CALC || currentPage === PageNumber.FINAL_WITH_CALC}
-              className={`bg-green-700 text-white ${(currentPage !== PageNumber.RAIN_TEMP && currentPage !== PageNumber.WELCOME && currentPage !== PageNumber.RAIN_EVENT) ? 'visible' : 'invisible'}`}
-            >
-              הבא
-            </Button>
-          </div>
-          <div className="flex">
-            <Button
-              onClick={() => { calcTavasit(); handleNext() }}
-              variant="ghost"
-              size="sm"
-              type="button"
-              className={`bg-green-700 text-white ${currentPage === PageNumber.RAIN_TEMP ? 'visible' : 'invisible'}`}
-            >
-              חשב
-            </Button>
-          </div>
-        </form>
-      </CardFooter>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow">
+        <Card>
+          <CardContent >
+            <div className='flex w-full justify-center items-center m-5'>
+              {renderCurrentPage()}
+            </div>
+          </CardContent>
+          <CardFooter className={[PageNumber.RAIN_EVENT, PageNumber.WELCOME, PageNumber.THANK_YOU].includes(currentPage) ? 'invisible' : 'visible'}>
+            <form className="flex items-center w-full justify-between">
+              <div className="text-xs text-muted-foreground">
+                <Button
+                  onClick={handlePrevious}
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  disabled={currentPage === PageNumber.WELCOME}
+                >
+                  הקודם
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  disabled={currentPage === PageNumber.THANK_YOU}
+                  className={`bg-green-700 text-white ${(currentPage !== PageNumber.RAIN_TEMP && currentPage !== PageNumber.WELCOME && currentPage !== PageNumber.RAIN_EVENT) ? 'visible' : 'invisible'}`}
+                >
+                  הבא
+                </Button>
+              </div>
+              <div className="flex">
+                <Button
+                  onClick={() => {
+                    const result = calcTavasit();
+                    setCalculationResult(result);
 
-      {/* Debug Panel - Only show in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <DebugPanel
-          currentPage={currentPage}
-          navigationHistory={navigationHistory}
-          formData={formData}
-          rainAmount={rainAmount}
-          minTemp={minTemp}
-          rainTempPairs={formData.rainTempPairs}
-          calculationResult={calculationResult}
-        />
-      )}
-    </Card >
+                    // Navigate based on calculation result
+                    if (result.type === 'TREATMENT_RECOMMENDED') {
+                      setNavigationHistory(prevHistory => [...prevHistory, PageNumber.SPRAYING_QUESTION]);
+                      setCurrentPage(PageNumber.SPRAYING_QUESTION);
+                    } else {
+                      setNavigationHistory(prevHistory => [...prevHistory, PageNumber.FINAL_NO_CALC]);
+                      setCurrentPage(PageNumber.FINAL_NO_CALC);
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  className={`bg-green-700 text-white ${currentPage === PageNumber.RAIN_TEMP ? 'visible' : 'invisible'}`}
+                >
+                  חשב
+                </Button>
+              </div>
+            </form>
+          </CardFooter>
+
+          {/* Debug Panel - Only show in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <DebugPanel
+              currentPage={currentPage}
+              navigationHistory={navigationHistory}
+              formData={formData}
+              rainAmount={rainAmount}
+              minTemp={minTemp}
+              rainTempPairs={formData.rainTempPairs}
+              calculationResult={calculationResult}
+            />
+          )}
+        </Card >
+      </div>
+
+      {/* Footer with credit */}
+      <footer className="bg-gray-100 border-t border-gray-200 py-4 px-6 mt-8">
+        <div className="text-center text-sm text-gray-600">
+          <p>Website developed by <a href="https://github.com/barezra94" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-800 hover:text-green-700 transition-colors duration-200 underline decoration-dotted">Bar Ezra Gafniel</a></p>
+          <p className="text-xs mt-1">© {new Date().getFullYear()} All rights reserved</p>
+        </div>
+      </footer>
+    </div>
   );
 }

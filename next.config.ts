@@ -15,8 +15,7 @@ export default {
   productionBrowserSourceMaps: false,
   // Enable React strict mode for better debugging
   reactStrictMode: true,
-  // Enable SWC minification for better performance
-  swcMinify: true,
+  // SWC minification is enabled by default in Next.js 13+
   // Optimize for production
   compress: true,
   // Disable x-powered-by header for security
