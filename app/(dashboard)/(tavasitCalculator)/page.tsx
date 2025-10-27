@@ -678,7 +678,7 @@ export default function TavasitCalculator() {
     // If we have a stored result, check spraying question
     if (calculationResult.type === 'TREATMENT_RECOMMENDED') {
       if (formData.sprayingInPastTwoWeeks === true) {
-        return <div className='bg-sky-300 p-5 rounded-md'>כבר בוצע ריסוס בשבועיים האחרונים, אין צורך לרסס שוב</div>;
+        return <div className='bg-sky-300 p-5 rounded-md'>אין צורך לרסס כרגע. חזור אחרי שעברו שבועיים מהריסוס.</div>;
       } else if (formData.sprayingInPastTwoWeeks === false) {
         return <div className='bg-sky-300 p-5 rounded-md'>על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס</div>;
       }
@@ -766,7 +766,7 @@ export default function TavasitCalculator() {
     return <div className='flex justify-center flex-col items-center'>
       <div className='bg-sky-300 p-5 rounded-md mb-4'>רסס בתכשיר מורשה מתאים</div>
       <div>
-        האם סביר שהשנה ירד עוד גשם?
+        האם קיימת סבירות שהשנה ירד עוד גשם?
       </div>
       <div>
         <Button className='m-5 ml-2' onClick={() => { setFormData({ ...formData, moreRainExpected: true }) }}>כן</Button>
@@ -777,8 +777,7 @@ export default function TavasitCalculator() {
 
   const renderFinalContinueTwoWeeks = () => {
     return <div className='bg-sky-300 p-5 rounded-md'>
-      המשך אחרי שעברו שבועיים מהריסוס
-    </div>
+      אין צורך לרסס כרגע. חזור אחרי שעברו שבועיים מהריסוס.</div>
   }
 
 
