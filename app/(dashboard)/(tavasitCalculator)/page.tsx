@@ -659,7 +659,7 @@ export default function TavasitCalculator() {
 
     // If we came from spraying question and user said they sprayed recently
     if (formData.sprayingInPastTwoWeeks === true) {
-      return <div className='bg-sky-300 p-5 rounded-md'>כבר בוצע ריסוס בשבועיים האחרונים, אין צורך לרסס שוב</div>;
+      return <div className='bg-sky-300 p-5 rounded-md'>אין צורך לרסס כרגע. חזור אחרי שעברו שבועיים מהריסוס.</div>;
     }
 
     // Default logic for other scenarios
