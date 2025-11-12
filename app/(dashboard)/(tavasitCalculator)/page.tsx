@@ -89,10 +89,12 @@ const minTempsForType: Record<OliveSensitivityType, number[]> = {
 
 const oliveTypes = {
   'אוליאסטר': OliveSensitivityType.HR,
+  'אקסל': OliveSensitivityType.I,
   'ארבקינה': OliveSensitivityType.HR,
   'ברנע': OliveSensitivityType.MR,
   'גמליק': OliveSensitivityType.I,
   'הוכיבלנקה': OliveSensitivityType.HR,
+  'לצינו': OliveSensitivityType.I,
   'מיסיון': OliveSensitivityType.HR,
   'מנזנילו': OliveSensitivityType.MS,
   'מעיליה': OliveSensitivityType.I,
@@ -101,7 +103,7 @@ const oliveTypes = {
   'סבלינו': OliveSensitivityType.HR,
   'סורי': OliveSensitivityType.HS,
   'פיקואל': OliveSensitivityType.MS,
-  'פישולין לגדוק': OliveSensitivityType.HR,
+  'פישולין לנגדוק': OliveSensitivityType.HR,
   'פישולין מרוקאי': OliveSensitivityType.MS,
   'קדש': OliveSensitivityType.I,
   'קורטינה': OliveSensitivityType.MS,
@@ -777,7 +779,7 @@ export default function TavasitCalculator() {
 
   const renderFinalContinueTwoWeeks = () => {
     return <div className='bg-sky-300 p-5 rounded-md'>
-      אין צורך לרסס כרגע. חזור אחרי שעברו שבועיים מהריסוס.</div>
+      המשך אחרי שעברו שבועיים מהריסוס.</div>
   }
 
 
