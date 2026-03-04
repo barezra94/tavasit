@@ -81,8 +81,8 @@ enum OliveSensitivityType {
 
 const minTempsForType: Record<OliveSensitivityType, number[]> = {
   [OliveSensitivityType.HS]: [12, 18],
-  [OliveSensitivityType.MS]: [13, 18],
-  [OliveSensitivityType.MR]: [14, 18],
+  [OliveSensitivityType.MS]: [13, 17],
+  [OliveSensitivityType.MR]: [14, 16],
   [OliveSensitivityType.HR]: [],
   [OliveSensitivityType.I]: [],
 }
