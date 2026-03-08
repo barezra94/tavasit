@@ -209,102 +209,144 @@ export default function TavasitCalculator() {
       return { type: 'CONSULT_GUIDE', message: 'יש לפנות למדריך' };
     }
 
-    // Split rain event into segments at days with <1.0mm rain OR temperatures outside range
-    const segments: RainTempPair[][] = [];
-    let currentSegment: RainTempPair[] = [];
+    // Check if all days are rain days (≥1mm)
+    const allDaysAreRainDays = formData.rainTempPairs.every(pair => parseFloat(pair.rainAmount) >= 1.0);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌧️ All days are rain days (≥1mm):', allDaysAreRainDays);
+    }
+
+    // Split into rain events (segments separated by days with <1mm rain)
+    const rainEvents: RainTempPair[][] = [];
+    let currentEvent: RainTempPair[] = [];
 
     for (const pair of formData.rainTempPairs) {
       const rainAmount = parseFloat(pair.rainAmount);
-      const temperature = parseFloat(pair.minTemp);
 
-      // Check if this day breaks the rain event (either insufficient rain or bad temperature)
-      const isRainTooLow = rainAmount < 1.0;
-      const isTempOutOfRange = temperature < temps[0] || temperature > temps[1];
-
-      if (isRainTooLow || isTempOutOfRange) {
-        // End current segment if it has data
-        if (currentSegment.length > 0) {
-          segments.push([...currentSegment]);
-          currentSegment = [];
+      if (rainAmount < 1.0) {
+        // End current rain event if it has data
+        if (currentEvent.length > 0) {
+          rainEvents.push([...currentEvent]);
+          currentEvent = [];
         }
-        // Skip this day (it breaks the rain event)
+        // Skip this day (not a rain day)
         if (process.env.NODE_ENV === 'development') {
-          if (isRainTooLow) {
-            console.log(`💧 Day with ${rainAmount}mm rain breaks segment (< 1.0mm)`);
-          }
-          if (isTempOutOfRange) {
-            console.log(`🌡️ Day with ${temperature}°C breaks segment (outside ${temps[0]}-${temps[1]}°C range)`);
-          }
+          console.log(`💧 Day with ${rainAmount}mm rain is not a rain day (< 1.0mm)`);
         }
       } else {
-        // Add to current segment (both rain and temperature are acceptable)
-        currentSegment.push(pair);
+        // Add to current rain event
+        currentEvent.push(pair);
       }
     }
 
-    // Add final segment if it has data
-    if (currentSegment.length > 0) {
-      segments.push(currentSegment);
+    // Add final rain event if it has data
+    if (currentEvent.length > 0) {
+      rainEvents.push(currentEvent);
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Rain event segments:', segments.map((seg, i) =>
-        `Segment ${i + 1}: ${seg.length} days, ${seg.reduce((sum, p) => sum + parseFloat(p.rainAmount), 0).toFixed(1)}mm total`
-      ));
+      console.log('🔄 Rain events found:', rainEvents.length);
+      rainEvents.forEach((event, i) => {
+        console.log(`  Event ${i + 1}: ${event.length} days, ${event.reduce((sum, p) => sum + parseFloat(p.rainAmount), 0).toFixed(1)}mm total`);
+      });
     }
 
-    // If no valid segments, no treatment needed
-    if (segments.length === 0) {
+    // If no rain events, no treatment needed
+    if (rainEvents.length === 0) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('❌ No valid rain segments found, no treatment needed');
+        console.log('❌ No rain events found, no treatment needed');
       }
       return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
     }
 
-    // Check each segment for infection criteria
+    // If all days are rain days, treat as single event and calculate average temp across all days
+    if (allDaysAreRainDays) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 All days are rain days - calculating as single event');
+      }
+
+      // Calculate total rain
+      const totalRain = formData.rainTempPairs.reduce((sum, pair) => sum + parseFloat(pair.rainAmount), 0);
+
+      if (totalRain < 15) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`❌ Insufficient total rain (${totalRain.toFixed(1)}mm < 15mm)`);
+        }
+        return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס' };
+      }
+
+      // Calculate average temperature across all days
+      const totalTemp = formData.rainTempPairs.reduce((sum, pair) => sum + parseFloat(pair.minTemp), 0);
+      const avgTemp = totalTemp / formData.rainTempPairs.length;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🌡️ Average temperature: ${avgTemp.toFixed(1)}°C (range: ${temps[0]}-${temps[1]}°C)`);
+      }
+
+      // Check if average temperature is within range
+      if (avgTemp >= temps[0] && avgTemp <= temps[1]) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ Infection criteria met! Rain: ${totalRain.toFixed(1)}mm, Avg Temp: ${avgTemp.toFixed(1)}°C`);
+        }
+        return { type: 'TREATMENT_RECOMMENDED', message: 'על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.' };
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`❌ Average temperature outside range`);
+        }
+        return { type: 'NO_TREATMENT', message: 'על פי הנתונים נראה שאין צורך לטפל כנגד עין טווס. בדוק שוב לאחר אירוע הגשם הבא.' };
+      }
+    }
+
+    // Not all days are rain days - check each rain event separately
     let hasInfectionEvent = false;
 
-    for (let i = 0; i < segments.length; i++) {
-      const segment = segments[i];
+    for (let i = 0; i < rainEvents.length; i++) {
+      const event = rainEvents[i];
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🔍 Checking segment ${i + 1}:`, segment.map(p => `${p.rainAmount}mm@${p.minTemp}°C`));
+        console.log(`🔍 Checking rain event ${i + 1}:`, event.map(p => `${p.rainAmount}mm@${p.minTemp}°C`));
       }
 
-      // Check total rain in segment
-      const segmentRainTotal = segment.reduce((total, pair) => {
-        return total + parseFloat(pair.rainAmount);
-      }, 0);
+      // Calculate total rain in this event
+      const eventRainTotal = event.reduce((sum, pair) => sum + parseFloat(pair.rainAmount), 0);
 
-      if (segmentRainTotal < 15) {
+      if (eventRainTotal < 15) {
         if (process.env.NODE_ENV === 'development') {
-          console.log(`❌ Segment ${i + 1}: Insufficient rain (${segmentRainTotal.toFixed(1)}mm < 15mm)`);
+          console.log(`❌ Event ${i + 1}: Insufficient rain (${eventRainTotal.toFixed(1)}mm < 15mm)`);
         }
-        continue; // Check next segment
+        continue; // Check next event
       }
 
-      // Calculate average temperature in segment (all temps are already within range due to segmentation)
-      const segmentTempSum = segment.reduce((total, pair) => {
-        return total + parseFloat(pair.minTemp);
-      }, 0);
-      const segmentAvgTemp = segmentTempSum / segment.length;
+      // Calculate average temperature for this rain event
+      const eventTempSum = event.reduce((sum, pair) => sum + parseFloat(pair.minTemp), 0);
+      const eventAvgTemp = eventTempSum / event.length;
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ Segment ${i + 1}: Infection criteria met! Rain: ${segmentRainTotal.toFixed(1)}mm, Avg Temp: ${segmentAvgTemp.toFixed(1)}°C (all temps within ${temps[0]}-${temps[1]}°C range)`);
+        console.log(`🌡️ Event ${i + 1}: Avg Temp: ${eventAvgTemp.toFixed(1)}°C (range: ${temps[0]}-${temps[1]}°C)`);
       }
 
-      hasInfectionEvent = true;
-      break; // Found infection event, no need to check other segments
+      // Check if average temperature is within range
+      if (eventAvgTemp >= temps[0] && eventAvgTemp <= temps[1]) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✅ Event ${i + 1}: Infection criteria met! Rain: ${eventRainTotal.toFixed(1)}mm, Avg Temp: ${eventAvgTemp.toFixed(1)}°C`);
+        }
+        hasInfectionEvent = true;
+        break; // Found infection event, no need to check other events
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`❌ Event ${i + 1}: Average temperature outside range`);
+        }
+      }
     }
 
     if (hasInfectionEvent) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Treatment recommended - infection event occurred in at least one segment');
+        console.log('✅ Treatment recommended - infection event occurred in at least one rain event');
       }
       return { type: 'TREATMENT_RECOMMENDED', message: 'על פי הנתונים התקיים אירוע הדבקה ויש לרסס כנגד עין טווס.' };
     } else {
       if (process.env.NODE_ENV === 'development') {
-        console.log('❌ No infection events found in any segment, no treatment needed');
+        console.log('❌ No infection events found in any rain event, no treatment needed');
       }
       return {
         type: 'NO_TREATMENT',
