@@ -12,7 +12,7 @@
       "static/chunks/c37e693c-9464cd685933fbe2.js",
       "static/chunks/128-d2e220a377ae1aa1.js",
       "static/chunks/main-app-1d5b23b795550094.js",
-      "static/css/c3c318a34e9788b2.css",
+      "static/css/d607edc0bf184d6e.css",
       "static/chunks/app/layout-c9320d17bea39c99.js"
     ],
     "/(dashboard)/layout": [
@@ -37,7 +37,7 @@
       "static/chunks/128-d2e220a377ae1aa1.js",
       "static/chunks/main-app-1d5b23b795550094.js",
       "static/chunks/48-f62e113b1d1d9e32.js",
-      "static/chunks/app/(dashboard)/page-b604febbc50f4985.js"
+      "static/chunks/app/(dashboard)/page-ca3b33b063092feb.js"
     ]
   }
 }

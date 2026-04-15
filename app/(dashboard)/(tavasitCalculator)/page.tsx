@@ -608,13 +608,25 @@ export default function TavasitCalculator() {
         </div>
       </div>
 
-      <div className='flex flex-row items-center'>
-        <div> מערכת טווזית פותחה במחלקה לפתולוגיה של צמחים וחקר העשבים של מכון וולקני על ידי ד״ר דוד עזרא, דוד יגזאו, יותם גילת ופרופ׳ דני שטיינברג</div>
-        <Button className="w-1/3 mt-5 bg-green-700" onClick={handleNext}>התחל</Button>
+      <div className='flex flex-row items-start gap-8 w-full'>
+        <div className='w-1/2 pr-4 text-right'>
+          מערכת טווזית פותחה במחלקה לפתולוגיה של צמחים וחקר העשבים של מכון וולקני על ידי ד״ר דוד עזרא, דוד יגזאו, יותם גילת ופרופ׳ דני שטיינברג
+        </div>
+
+        <div className='w-1/2 flex flex-col items-center gap-4'>
+          <div className='w-full max-w-xs'>
+            <Button className="bg-green-700 w-full py-4" onClick={handleNext}>התחל</Button>
+          </div>
+          <div className='w-full max-w-xs'>
+            <a className='block w-full' href="https://predeploy-92acfa41-tavazit-olive-cbpfdjv9-9snacpnrwgetuz4a.manus.space/" target="_blank" rel="noopener noreferrer">
+              <Button className="bg-green-200 w-full py-4 text-black">לגרסה נוספת של הטווזית</Button>
+            </a>
+          </div>
+        </div>
       </div>
 
-      <div className='flex flex-row items-right'>
-        <div> הפניה באתר זה הינה בשפת זכר, אבל פונה לכל המגזרים</div>
+      <div className='flex flex-row justify-end p-5'>
+        <div>הפניה באתר זה הינה בשפת זכר, אבל פונה לכל המגזרים</div>
       </div>
 
 
