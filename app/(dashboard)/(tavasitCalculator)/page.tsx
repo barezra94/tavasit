@@ -89,12 +89,9 @@ const minTempsForType: Record<OliveSensitivityType, number[]> = {
 
 const oliveTypes = {
   'אוליאסטר': OliveSensitivityType.HR,
-  'אקסל': OliveSensitivityType.I,
-  'ארבקינה': OliveSensitivityType.HR,
+  'אקסל': OliveSensitivityType.MR,
+  'ארבקינה': OliveSensitivityType.MS,
   'ברנע': OliveSensitivityType.MR,
-  'גמליק': OliveSensitivityType.I,
-  'הוכיבלנקה': OliveSensitivityType.HR,
-  'לצינו': OliveSensitivityType.I,
   'מיסיון': OliveSensitivityType.HR,
   'מנזנילו': OliveSensitivityType.MS,
   'מעיליה': OliveSensitivityType.I,
@@ -102,12 +99,11 @@ const oliveTypes = {
   'נבאלי בלאדי': OliveSensitivityType.HS,
   'סבלינו': OliveSensitivityType.HR,
   'סורי': OliveSensitivityType.HS,
-  'פיקואל': OliveSensitivityType.MS,
-  'פישולין לנגדוק': OliveSensitivityType.HR,
-  'פישולין מרוקאי': OliveSensitivityType.MS,
-  'קדש': OliveSensitivityType.I,
+  'פיקואל': OliveSensitivityType.MS, 
+  'פישולין': OliveSensitivityType.HR,
+  'קדש': OliveSensitivityType.HR,
   'קורטינה': OliveSensitivityType.MS,
-  'קורנייקי': OliveSensitivityType.HR,
+  'קורנייקי': OliveSensitivityType.MR,
 }
 
 export default function TavasitCalculator() {
